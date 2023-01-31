@@ -94,8 +94,8 @@ app.get("/matches/:matchId/players", async (request, response) => {
      SELECT 
         player_id AS playerId,
         player_name AS playerName      
-     FROM 
-       player_match_score NATURAL JOIN player_details 
+     FROM player_details
+      NATURAL JOIN  player_match_score 
      WHERE 
        match_id = ${matchId};`;
   const playerFromMatchDetails = await db.all(getPlayersFromMatchQuery);
@@ -107,17 +107,16 @@ app.get("/players/:playerId/playerScores", async (request, response) => {
   const { playerId } = request.params;
   const playerScoreQuery = `
     SELECT
-        player_details.player_id AS playerId,
-        player_details.player_name AS playerName,
-        SUM(player_match_score.score) AS totalScore,
-        SUM(fours) AS totalFours,
-        SUM(sixes) AS totalSixes 
-    FROM 
-        player_details INNER JOIN player_match_score ON
-        player_details.player_id = player_match_score.player_id
+      player_id AS playerId,
+      player_name AS playerName,
+      SUM(score) AS totalScore,
+      SUM(fours) AS totalFours,
+      SUM(sixes) AS totalSixes
+    FROM player_match_score
+      NATURAL JOIN player_details
     WHERE 
-        player_details.player_id = ${playerId};`;
-  const playerScoreArr = await db.all(playerScoreQuery);
+        player_id = ${playerId};`;
+  const playerScoreArr = await db.get(playerScoreQuery);
   response.send(playerScoreArr);
 });
 module.exports = app;
